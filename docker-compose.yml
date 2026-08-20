@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Serviço do Banco de Dados
+  db:
+    image: mysql:8.0
+    container_name: mysql_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: srmasset
+      MYSQL_USER: srmasset
+      MYSQL_PASSWORD: srmasset
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - rede_comunicacao
+
+  # Serviço da Aplicação Java
+  app:
+    build: .
+    container_name: java_container
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - DB_URL=jdbc:mysql://db:3306/srmasset?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - DB_USER=java_user
+      - DB_PASSWORD=javapassword
+    networks:
+      - rede_comunicacao
+
+# Volumes para não perder os dados do banco ao desligar
+volumes:
+  mysql_data:
+
+# Rede que interliga os dois containers
+networks:
+  rede_comunicacao:
+    driver: bridge

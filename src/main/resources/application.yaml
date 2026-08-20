@@ -2,21 +2,23 @@ spring:
   application:
     name: srmcreditengine
   datasource:
-    url: jdbc:h2:mem:srmcreditengine
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: jdbc:mysql://db:3306/srmasset?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: srmasset
+    password: srmasset
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
-  srm:
-    precificacao:
-      taxa-base-mensal: 0.01
+        dialect: org.hibernate.dialect.MySQLDialect
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+srm:
+  precificacao:
+    taxa-base-mensal: 0.01
