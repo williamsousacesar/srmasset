@@ -14,25 +14,25 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Liquidacoes", description = "Liquidacao (antecipacao) de recebiveis")
 public class LiquidacaoController {
 
-    private final LiquidacaoService liquidacaoServico;
+    private final LiquidacaoService liquidacaoService;
 
     public LiquidacaoController(LiquidacaoService liquidacaoServico) {
 
-        this.liquidacaoServico = liquidacaoServico;
+        this.liquidacaoService = liquidacaoServico;
     }
 
     @PostMapping
     @Operation(summary = "Liquida (antecipa) um recebivel, calculando o valor presente e aplicando conversao cambial quando necessario")
     public ResponseEntity<LiquidacaoRespostaDTO> liquidar(
             @PathVariable Long recebivelId, @Valid @RequestBody LiquidacaoRequisicaoDTO requisicao) {
-        var liquidacao = liquidacaoServico.liquidar(recebivelId, requisicao.moedaPagamento());
+        var liquidacao = liquidacaoService.liquidar(recebivelId, requisicao.moedaPagamento());
         return ResponseEntity.ok(LiquidacaoRespostaDTO.liquidacaoResposta(liquidacao));
     }
 
     @GetMapping
     @Operation(summary = "Consulta a liquidacao registrada para um recebivel")
     public ResponseEntity<LiquidacaoRespostaDTO> buscarPorRecebivel(@PathVariable Long recebivelId) {
-        var liquidacao = liquidacaoServico.buscarPorRecebivel(recebivelId);
+        var liquidacao = liquidacaoService.buscarPorRecebivel(recebivelId);
         return ResponseEntity.ok(LiquidacaoRespostaDTO.liquidacaoResposta(liquidacao));
     }
 }
