@@ -1,3 +1,6 @@
 spring:
   application:
     name: srmcreditengine
+  srm:
+    precificacao:
+      taxa-base-mensal: 0.01
