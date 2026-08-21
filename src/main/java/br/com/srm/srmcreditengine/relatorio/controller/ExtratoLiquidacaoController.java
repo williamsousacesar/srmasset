@@ -20,18 +20,18 @@ import java.time.LocalDate;
 @Tag(name = "Relatorios", description = "Consultas analiticas de liquidacao")
 public class ExtratoLiquidacaoController {
 
-    private final ExtratoLiquidacaoRepository extratoLiquidacaoRepositoy;
+    private final ExtratoLiquidacaoRepository extratoLiquidacaoRepository;
 
     public ExtratoLiquidacaoController(ExtratoLiquidacaoRepository extratoLiquidacaoRepositorio) {
-        this.extratoLiquidacaoRepositoy = extratoLiquidacaoRepositorio;
+        this.extratoLiquidacaoRepository = extratoLiquidacaoRepositorio;
     }
 
     @GetMapping("/extrato-liquidacao")
     @Operation(summary = "Extrato de Liquidacao",
             description = "Consulta liquidacoes com filtros por periodo, cedente e moeda, com paginacao otimizada via SQL nativo")
     public ResponseEntity<ExtratoLiquidacaoRespostaDTO> consultarExtrato(
-            @Parameter(description = "Data inicial (inclusive)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
-            @Parameter(description = "Data final (inclusive)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
+            @Parameter(description = "Data inicial (inclusive)", required = true) @RequestParam @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate dataInicio,
+            @Parameter(description = "Data final (inclusive)", required = true) @RequestParam @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate dataFim,
             @Parameter(description = "Id do cedente") @RequestParam(required = false) Long cedenteId,
             @Parameter(description = "Moeda de pagamento (ex: BRL, USD)") @RequestParam(required = false) String moeda,
             @Parameter(description = "Numero da pagina (0-based)") @RequestParam(defaultValue = "0") int pagina,
@@ -40,8 +40,8 @@ public class ExtratoLiquidacaoController {
         FiltroExtratoLiquidacaoDTO filtro = new FiltroExtratoLiquidacaoDTO(
                 dataInicio, dataFim, cedenteId, moeda, Math.max(pagina, 0), Math.max(tamanho, 1));
 
-        var conteudo = extratoLiquidacaoRepositoy.buscarExtrato(filtro);
-        long totalDeElementos = extratoLiquidacaoRepositoy.contarExtrato(filtro);
+        var conteudo = extratoLiquidacaoRepository.buscarExtrato(filtro);
+        long totalDeElementos = extratoLiquidacaoRepository.contarExtrato(filtro);
         int totalDePaginas = (int) Math.ceil((double) totalDeElementos / filtro.tamanho());
 
         var resposta = new ExtratoLiquidacaoRespostaDTO(
