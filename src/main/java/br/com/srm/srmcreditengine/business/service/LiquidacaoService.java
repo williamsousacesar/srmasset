@@ -66,6 +66,7 @@ public class LiquidacaoService {
         }
 
         recebivel.setStatus(StatusRecebivel.LIQUIDADO);
+        recebivel.setDataUltimaAlteracao(LocalDateTime.now());
         recebivelRepository.save(recebivel);
 
         Liquidacao liquidacao = Liquidacao.builder()
