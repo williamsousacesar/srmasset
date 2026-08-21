@@ -3,6 +3,8 @@ package br.com.srm.srmcreditengine.presentation.exceptionhandler;
 import br.com.srm.srmcreditengine.business.exception.RecebivelJaLiquidadoException;
 import br.com.srm.srmcreditengine.business.exception.RecursoNaoEncontradoException;
 import br.com.srm.srmcreditengine.business.exception.RegraDeNegocioException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,6 +16,8 @@ import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ErroRespostaDTO> tratarRecursoNaoEncontrado(RecursoNaoEncontradoException ex) {
@@ -36,6 +40,13 @@ public class GlobalExceptionHandler {
                 .map(erro -> erro.getField() + ": " + erro.getDefaultMessage())
                 .toList();
         return construirResposta(HttpStatus.BAD_REQUEST, "Dados invalidos na requisicao", detalhes);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErroRespostaDTO> tratarErroInesperado(Exception ex) {
+        LOGGER.error("Erro inesperado ao processar a requisicao", ex);
+        return construirResposta(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Ocorreu um erro inesperado. Tente novamente mais tarde.", List.of());
     }
 
     private ResponseEntity<ErroRespostaDTO> construirResposta(HttpStatus status, String mensagem, List<String> detalhes) {
