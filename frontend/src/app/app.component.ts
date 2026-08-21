@@ -15,16 +15,28 @@ type Aba = 'cedentes' | 'recebiveis' | 'cambio' | 'liquidacoes' | 'extrato';
     LiquidacoesComponent, ExtratoComponent],
   template: `
     <header class="topo">
-      <h1>SRM Credit Engine</h1>
-      <p>Antecipação de recebíveis — gestão de cedentes, câmbio e liquidações</p>
+      <div class="topo-conteudo">
+        <a class="marca" href="/" title="SRM Asset">
+          <svg class="marca-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 29.7031" fill="none" aria-hidden="true">
+            <path d="M0.00489387 7.27925V21.8279L12.654 1.36185e-07L0.00489387 7.27925ZM0.350909 22.4287L12.9999 29.7031L25.6491 22.4287H0.350909ZM13.346 0.00493001L25.9951 21.8328V7.28418L13.346 0.00493001Z" fill="#28408D"/>
+          </svg>
+          <span class="marca-texto">
+            <strong>SRM</strong><span class="marca-sub">asset</span>
+          </span>
+        </a>
+        <div class="topo-titulo">
+          <h1>Credit Engine</h1>
+          <p>Antecipação de recebíveis — cedentes, câmbio e liquidações</p>
+        </div>
+      </div>
+      <nav class="tabs">
+        <button [class.ativa]="aba === 'cedentes'" (click)="aba = 'cedentes'">Cedentes</button>
+        <button [class.ativa]="aba === 'recebiveis'" (click)="aba = 'recebiveis'">Recebíveis</button>
+        <button [class.ativa]="aba === 'cambio'" (click)="aba = 'cambio'">Câmbio</button>
+        <button [class.ativa]="aba === 'liquidacoes'" (click)="aba = 'liquidacoes'">Liquidações</button>
+        <button [class.ativa]="aba === 'extrato'" (click)="aba = 'extrato'">Extrato</button>
+      </nav>
     </header>
-    <nav class="tabs">
-      <button [class.ativa]="aba === 'cedentes'" (click)="aba = 'cedentes'">Cedentes</button>
-      <button [class.ativa]="aba === 'recebiveis'" (click)="aba = 'recebiveis'">Recebíveis</button>
-      <button [class.ativa]="aba === 'cambio'" (click)="aba = 'cambio'">Câmbio</button>
-      <button [class.ativa]="aba === 'liquidacoes'" (click)="aba = 'liquidacoes'">Liquidações</button>
-      <button [class.ativa]="aba === 'extrato'" (click)="aba = 'extrato'">Extrato</button>
-    </nav>
     <main>
       <app-cedentes *ngIf="aba === 'cedentes'"></app-cedentes>
       <app-recebiveis *ngIf="aba === 'recebiveis'"></app-recebiveis>

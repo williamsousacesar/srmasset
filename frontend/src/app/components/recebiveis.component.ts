@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, extrairErro } from '../services/api.service';
-import { Cedente, Recebivel, MOEDAS, TIPOS_RECEBIVEL, Moeda, TipoRecebivel } from '../models/api.models';
+import { Recebivel, MOEDAS, TIPOS_RECEBIVEL, Moeda, TipoRecebivel } from '../models/api.models';
 import { DataBrPipe } from '../pipes/data-br.pipe';
 
 @Component({
@@ -13,11 +13,8 @@ import { DataBrPipe } from '../pipes/data-br.pipe';
     <div class="cartao">
       <h2>Cadastrar Recebível</h2>
       <form class="grade" (ngSubmit)="cadastrar()">
-        <label>Cedente
-          <select [(ngModel)]="cedenteId" name="cedenteId" required>
-            <option [ngValue]="null" disabled>Selecione...</option>
-            <option *ngFor="let c of cedentes" [ngValue]="c.id">{{ c.id }} — {{ c.nome }}</option>
-          </select>
+        <label>ID do Cedente
+          <input type="number" min="1" [(ngModel)]="cedenteId" name="cedenteId" required placeholder="1">
         </label>
         <label>Tipo
           <select [(ngModel)]="tipo" name="tipo" required>
@@ -48,8 +45,17 @@ import { DataBrPipe } from '../pipes/data-br.pipe';
     </div>
 
     <div class="cartao">
-      <h2>Recebíveis Cadastrados</h2>
-      <table *ngIf="recebiveis.length; else vazio">
+      <h2>Consultar Recebível por ID</h2>
+      <form class="grade" (ngSubmit)="consultar()">
+        <label>ID do Recebível
+          <input type="number" min="1" [(ngModel)]="idConsulta" name="idConsulta" required placeholder="1">
+        </label>
+        <button class="acao" type="submit" [disabled]="idConsulta == null || consultando">
+          {{ consultando ? 'Consultando...' : 'Consultar' }}
+        </button>
+      </form>
+      <div class="mensagem erro" *ngIf="erroConsulta">{{ erroConsulta }}</div>
+      <table *ngIf="recebivel">
         <thead>
           <tr>
             <th>ID</th><th>Cedente</th><th>Tipo</th><th>Valor Face</th><th>Moeda</th>
@@ -57,26 +63,23 @@ import { DataBrPipe } from '../pipes/data-br.pipe';
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let r of recebiveis">
-            <td>{{ r.id }}</td>
-            <td>{{ r.nomeCedente }}</td>
-            <td>{{ r.tipo }}</td>
-            <td>{{ r.valorFace | number:'1.2-2' }}</td>
-            <td>{{ r.moedaTitulo }}</td>
-            <td>{{ r.prazoMeses }}m</td>
-            <td>{{ r.dataVencimento | dataBr }}</td>
-            <td><span class="badge" [class.aberto]="r.status !== 'LIQUIDADO'"
-                  [class.liquidado]="r.status === 'LIQUIDADO'">{{ r.status }}</span></td>
+          <tr>
+            <td>{{ recebivel.id }}</td>
+            <td>{{ recebivel.nomeCedente }}</td>
+            <td>{{ recebivel.tipo }}</td>
+            <td>{{ recebivel.valorFace | number:'1.2-2' }}</td>
+            <td>{{ recebivel.moedaTitulo }}</td>
+            <td>{{ recebivel.prazoMeses }}m</td>
+            <td>{{ recebivel.dataVencimento | dataBr }}</td>
+            <td><span class="badge" [class.aberto]="recebivel.status !== 'LIQUIDADO'"
+                  [class.liquidado]="recebivel.status === 'LIQUIDADO'">{{ recebivel.status }}</span></td>
           </tr>
         </tbody>
       </table>
-      <ng-template #vazio><p>Nenhum recebível cadastrado.</p></ng-template>
     </div>
   `
 })
-export class RecebiveisComponent implements OnInit {
-  recebiveis: Recebivel[] = [];
-  cedentes: Cedente[] = [];
+export class RecebiveisComponent {
   moedas = MOEDAS;
   tipos = TIPOS_RECEBIVEL;
 
@@ -92,17 +95,21 @@ export class RecebiveisComponent implements OnInit {
   erro = '';
   carregando = false;
 
+  idConsulta: number | null = null;
+  recebivel: Recebivel | null = null;
+  erroConsulta = '';
+  consultando = false;
+
   constructor(private api: ApiService) {}
 
-  ngOnInit(): void {
-    this.listar();
-    this.api.listarCedentes().subscribe({ next: c => this.cedentes = c });
-  }
-
-  listar(): void {
-    this.api.listarRecebiveis().subscribe({
-      next: dados => this.recebiveis = dados,
-      error: err => this.erro = extrairErro(err)
+  consultar(): void {
+    if (this.idConsulta == null) { return; }
+    this.erroConsulta = '';
+    this.recebivel = null;
+    this.consultando = true;
+    this.api.buscarRecebivelPorId(this.idConsulta).subscribe({
+      next: r => { this.recebivel = r; this.consultando = false; },
+      error: err => { this.erroConsulta = extrairErro(err); this.consultando = false; }
     });
   }
 
@@ -126,7 +133,6 @@ export class RecebiveisComponent implements OnInit {
       next: r => {
         this.sucesso = `Recebível cadastrado com id ${r.id}.`;
         this.carregando = false;
-        this.listar();
       },
       error: err => { this.erro = extrairErro(err); this.carregando = false; }
     });

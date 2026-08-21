@@ -25,6 +25,10 @@ export class ApiService {
     return this.http.post<Cedente>(`${this.base}/cedentes/cadastrar`, req);
   }
 
+  buscarCedentePorId(id: number): Observable<Cedente> {
+    return this.http.get<Cedente>(`${this.base}/cedentes/${id}`);
+  }
+
   // Recebiveis
   listarRecebiveis(): Observable<Recebivel[]> {
     return this.http.get<Recebivel[]>(`${this.base}/recebiveis/listar-tudo`);
@@ -34,6 +38,10 @@ export class ApiService {
     return this.http.post<Recebivel>(`${this.base}/recebiveis/cadastrar`, req);
   }
 
+  buscarRecebivelPorId(id: number): Observable<Recebivel> {
+    return this.http.get<Recebivel>(`${this.base}/recebiveis/${id}`);
+  }
+
   // Cambio
   listarTaxas(): Observable<TaxaCambio[]> {
     return this.http.get<TaxaCambio[]>(`${this.base}/cambio/taxas/listar-tudo`);
@@ -41,6 +49,10 @@ export class ApiService {
 
   atualizarTaxa(req: TaxaCambioRequisicao): Observable<TaxaCambio> {
     return this.http.put<TaxaCambio>(`${this.base}/cambio/taxas`, req);
+  }
+
+  buscarTaxa(moedaOrigem: string, moedaDestino: string): Observable<TaxaCambio> {
+    return this.http.get<TaxaCambio>(`${this.base}/cambio/taxas/${moedaOrigem}/${moedaDestino}`);
   }
 
   // Liquidacoes

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, extrairErro } from '../services/api.service';
@@ -26,40 +26,54 @@ import { DataBrPipe } from '../pipes/data-br.pipe';
     </div>
 
     <div class="cartao">
-      <h2>Cedentes Cadastrados</h2>
-      <table *ngIf="cedentes.length; else vazio">
+      <h2>Consultar Cedente por ID</h2>
+      <form class="grade" (ngSubmit)="consultar()">
+        <label>ID do Cedente
+          <input type="number" min="1" [(ngModel)]="idConsulta" name="idConsulta" required placeholder="1">
+        </label>
+        <button class="acao" type="submit" [disabled]="idConsulta == null || consultando">
+          {{ consultando ? 'Consultando...' : 'Consultar' }}
+        </button>
+      </form>
+      <div class="mensagem erro" *ngIf="erroConsulta">{{ erroConsulta }}</div>
+      <table *ngIf="cedente">
         <thead>
           <tr><th>ID</th><th>Nome</th><th>Documento</th><th>Data de Inclusão</th></tr>
         </thead>
         <tbody>
-          <tr *ngFor="let c of cedentes">
-            <td>{{ c.id }}</td>
-            <td>{{ c.nome }}</td>
-            <td>{{ c.documento }}</td>
-            <td>{{ c.dataInclusao | dataBr }}</td>
+          <tr>
+            <td>{{ cedente.id }}</td>
+            <td>{{ cedente.nome }}</td>
+            <td>{{ cedente.documento }}</td>
+            <td>{{ cedente.dataInclusao | dataBr }}</td>
           </tr>
         </tbody>
       </table>
-      <ng-template #vazio><p>Nenhum cedente cadastrado.</p></ng-template>
     </div>
   `
 })
-export class CedentesComponent implements OnInit {
-  cedentes: Cedente[] = [];
+export class CedentesComponent {
   nome = '';
   documento = '';
   sucesso = '';
   erro = '';
   carregando = false;
 
+  idConsulta: number | null = null;
+  cedente: Cedente | null = null;
+  erroConsulta = '';
+  consultando = false;
+
   constructor(private api: ApiService) {}
 
-  ngOnInit(): void { this.listar(); }
-
-  listar(): void {
-    this.api.listarCedentes().subscribe({
-      next: dados => this.cedentes = dados,
-      error: err => this.erro = extrairErro(err)
+  consultar(): void {
+    if (this.idConsulta == null) { return; }
+    this.erroConsulta = '';
+    this.cedente = null;
+    this.consultando = true;
+    this.api.buscarCedentePorId(this.idConsulta).subscribe({
+      next: c => { this.cedente = c; this.consultando = false; },
+      error: err => { this.erroConsulta = extrairErro(err); this.consultando = false; }
     });
   }
 
@@ -71,7 +85,6 @@ export class CedentesComponent implements OnInit {
         this.sucesso = `Cedente "${c.nome}" cadastrado com id ${c.id}.`;
         this.nome = this.documento = '';
         this.carregando = false;
-        this.listar();
       },
       error: err => { this.erro = extrairErro(err); this.carregando = false; }
     });
