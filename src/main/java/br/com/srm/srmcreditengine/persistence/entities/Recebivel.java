@@ -3,11 +3,13 @@ package br.com.srm.srmcreditengine.persistence.entities;
 import br.com.srm.srmcreditengine.persistence.enums.Moeda;
 import br.com.srm.srmcreditengine.persistence.enums.StatusRecebivel;
 import br.com.srm.srmcreditengine.persistence.enums.TipoRecebivel;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "recebivel")
@@ -53,4 +55,26 @@ public class Recebivel {
     @Version
     @Column(name = "versao")
     private Long versao;
+
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @Column(name = "data_inclusao", updatable = false)
+    private LocalDateTime dataInclusao;
+
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @Column(name = "data_ultima_alteracao")
+    private LocalDateTime dataUltimaAlteracao;
+
+    @PrePersist
+    private void prePersist() {
+        if (this.status == StatusRecebivel.PENDENTE) {
+            this.dataInclusao = LocalDateTime.now();
+        }
+    }
+
+    @PreUpdate
+    private void preUpdate() {
+        if (this.status == StatusRecebivel.PENDENTE) {
+            this.dataUltimaAlteracao = LocalDateTime.now();
+        }
+    }
 }
