@@ -29,8 +29,8 @@ services:
       - db
     environment:
       - DB_URL=jdbc:mysql://db:3306/srmasset?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      - DB_USER=java_user
-      - DB_PASSWORD=javapassword
+      - DB_USER=srmasset
+      - DB_PASSWORD=srmasset
     networks:
       - rede_comunicacao
 
