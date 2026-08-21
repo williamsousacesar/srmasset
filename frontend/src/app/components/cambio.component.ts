@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, extrairErro } from '../services/api.service';
@@ -33,27 +33,41 @@ import { DataBrPipe } from '../pipes/data-br.pipe';
     </div>
 
     <div class="cartao">
-      <h2>Taxas Cadastradas</h2>
-      <table *ngIf="taxas.length; else vazio">
+      <h2>Consultar Taxa por Moedas</h2>
+      <form class="grade" (ngSubmit)="consultar()">
+        <label>Moeda de Origem
+          <select [(ngModel)]="origemConsulta" name="origemConsulta" required>
+            <option *ngFor="let m of moedas" [ngValue]="m">{{ m }}</option>
+          </select>
+        </label>
+        <label>Moeda de Destino
+          <select [(ngModel)]="destinoConsulta" name="destinoConsulta" required>
+            <option *ngFor="let m of moedas" [ngValue]="m">{{ m }}</option>
+          </select>
+        </label>
+        <button class="acao" type="submit" [disabled]="consultando">
+          {{ consultando ? 'Consultando...' : 'Consultar' }}
+        </button>
+      </form>
+      <div class="mensagem erro" *ngIf="erroConsulta">{{ erroConsulta }}</div>
+      <table *ngIf="taxa">
         <thead>
           <tr><th>ID</th><th>Origem</th><th>Destino</th><th>Valor</th><th>Última Atualização</th></tr>
         </thead>
         <tbody>
-          <tr *ngFor="let t of taxas">
-            <td>{{ t.id }}</td>
-            <td>{{ t.moedaOrigem }}</td>
-            <td>{{ t.moedaDestino }}</td>
-            <td>{{ t.valor | number:'1.4-6' }}</td>
-            <td>{{ t.dataAtualizacao | dataBr }}</td>
+          <tr>
+            <td>{{ taxa.id }}</td>
+            <td>{{ taxa.moedaOrigem }}</td>
+            <td>{{ taxa.moedaDestino }}</td>
+            <td>{{ taxa.valor | number:'1.4-6' }}</td>
+            <td>{{ taxa.dataAtualizacao | dataBr }}</td>
           </tr>
         </tbody>
       </table>
-      <ng-template #vazio><p>Nenhuma taxa cadastrada.</p></ng-template>
     </div>
   `
 })
-export class CambioComponent implements OnInit {
-  taxas: TaxaCambio[] = [];
+export class CambioComponent {
   moedas = MOEDAS;
   moedaOrigem: Moeda = 'USD';
   moedaDestino: Moeda = 'BRL';
@@ -62,14 +76,25 @@ export class CambioComponent implements OnInit {
   erro = '';
   carregando = false;
 
+  origemConsulta: Moeda = 'USD';
+  destinoConsulta: Moeda = 'BRL';
+  taxa: TaxaCambio | null = null;
+  erroConsulta = '';
+  consultando = false;
+
   constructor(private api: ApiService) {}
 
-  ngOnInit(): void { this.listar(); }
-
-  listar(): void {
-    this.api.listarTaxas().subscribe({
-      next: dados => this.taxas = dados,
-      error: err => this.erro = extrairErro(err)
+  consultar(): void {
+    this.erroConsulta = '';
+    this.taxa = null;
+    if (this.origemConsulta === this.destinoConsulta) {
+      this.erroConsulta = 'Moedas de origem e destino devem ser diferentes.';
+      return;
+    }
+    this.consultando = true;
+    this.api.buscarTaxa(this.origemConsulta, this.destinoConsulta).subscribe({
+      next: t => { this.taxa = t; this.consultando = false; },
+      error: err => { this.erroConsulta = extrairErro(err); this.consultando = false; }
     });
   }
 
@@ -86,7 +111,6 @@ export class CambioComponent implements OnInit {
           this.sucesso = `Taxa ${t.moedaOrigem}→${t.moedaDestino} atualizada para ${t.valor}.`;
           this.valor = null;
           this.carregando = false;
-          this.listar();
         },
         error: err => { this.erro = extrairErro(err); this.carregando = false; }
       });
