@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Serviço do Banco de Dados
   db:
@@ -17,6 +15,12 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - rede_comunicacao
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --protocol=TCP -u root -prootpassword || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
 
   # Serviço da Aplicação Java
   app:
@@ -26,11 +30,24 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - DB_URL=jdbc:mysql://db:3306/srmasset?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - DB_USER=srmasset
       - DB_PASSWORD=srmasset
+    networks:
+      - rede_comunicacao
+
+  # Serviço do Frontend Angular (nginx com proxy /api -> app)
+  web:
+    build: ./frontend
+    container_name: angular_container
+    restart: on-failure
+    ports:
+      - "4300:80"
+    depends_on:
+      - app
     networks:
       - rede_comunicacao
 
