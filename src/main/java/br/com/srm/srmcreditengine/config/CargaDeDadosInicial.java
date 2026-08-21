@@ -48,6 +48,7 @@ public class CargaDeDadosInicial {
                 Cedente cedente = cedenteRepositorio.save(Cedente.builder()
                         .nome("Comercial Exemplo Ltda")
                         .documento("12.345.678/0001-90")
+                        .dataInclusao(LocalDateTime.now())
                         .build());
 
                 recebivelRepositorio.save(Recebivel.builder()

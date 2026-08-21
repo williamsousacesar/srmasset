@@ -24,15 +24,15 @@ public class CedenteController {
         this.cedenteServico = cedenteServico;
     }
 
-    @PostMapping
     @Operation(summary = "Cadastra um novo cedente")
+    @PostMapping("/cadastrar")
     public ResponseEntity<CedenteRespostaDTO> cadastrar(@Valid @RequestBody CedenteRequisicaoDTO requisicao) {
         var cedente = cedenteServico.cadastrar(requisicao.nome(), requisicao.documento());
         var resposta = CedenteRespostaDTO.cedenteResposta(cedente);
         return ResponseEntity.created(URI.create("/api/cedentes/" + cedente.getId())).body(resposta);
     }
 
-    @GetMapping
+    @GetMapping("/listar-tudo")
     @Operation(summary = "Lista todos os cedentes cadastrados")
     public ResponseEntity<List<CedenteRespostaDTO>> listarTodos() {
         var cedentes = cedenteServico.listarTodos().stream().map(CedenteRespostaDTO::cedenteResposta).toList();
