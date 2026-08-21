@@ -23,7 +23,7 @@ public class RecebivelController {
         this.recebivelServico = recebivelServico;
     }
 
-    @PostMapping
+    @PostMapping("/cadastrar")
     @Operation(summary = "Cadastra um novo recebivel")
     public ResponseEntity<RecebivelRespostaDTO> cadastrar(@Valid @RequestBody RecebivelRequisicaoDTO requisicao) {
         var recebivel = recebivelServico.cadastrar(
@@ -38,7 +38,7 @@ public class RecebivelController {
         return ResponseEntity.created(URI.create("/api/recebiveis/" + recebivel.getId())).body(resposta);
     }
 
-    @GetMapping
+    @GetMapping("/listar-tudo")
     @Operation(summary = "Lista todos os recebiveis cadastrados")
     public ResponseEntity<List<RecebivelRespostaDTO>> listarTodos() {
         var recebiveis = recebivelServico.listarTodos().stream().map(RecebivelRespostaDTO::apartirDe).toList();

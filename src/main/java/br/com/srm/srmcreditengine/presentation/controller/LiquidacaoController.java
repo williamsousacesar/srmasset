@@ -10,26 +10,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/recebiveis/{recebivelId}/liquidacoes")
+@RequestMapping("/api/liquidacoes")
 @Tag(name = "Liquidacoes", description = "Liquidacao (antecipacao) de recebiveis")
 public class LiquidacaoController {
 
     private final LiquidacaoService liquidacaoService;
 
-    public LiquidacaoController(LiquidacaoService liquidacaoServico) {
+    public LiquidacaoController(LiquidacaoService liquidacaoService) {
 
-        this.liquidacaoService = liquidacaoServico;
+        this.liquidacaoService = liquidacaoService;
     }
 
-    @PostMapping
+    @PostMapping("/liquidar")
     @Operation(summary = "Liquida (antecipa) um recebivel, calculando o valor presente e aplicando conversao cambial quando necessario")
-    public ResponseEntity<LiquidacaoRespostaDTO> liquidar(
-            @PathVariable Long recebivelId, @Valid @RequestBody LiquidacaoRequisicaoDTO requisicao) {
-        var liquidacao = liquidacaoService.liquidar(recebivelId, requisicao.moedaPagamento());
+    public ResponseEntity<LiquidacaoRespostaDTO> liquidar(@Valid @RequestBody LiquidacaoRequisicaoDTO requisicao) {
+        var liquidacao = liquidacaoService.liquidar(requisicao.recebivelId(), requisicao.moedaPagamento());
         return ResponseEntity.ok(LiquidacaoRespostaDTO.liquidacaoResposta(liquidacao));
     }
 
-    @GetMapping
+    @GetMapping("/recebivel/{recebivelId}")
     @Operation(summary = "Consulta a liquidacao registrada para um recebivel")
     public ResponseEntity<LiquidacaoRespostaDTO> buscarPorRecebivel(@PathVariable Long recebivelId) {
         var liquidacao = liquidacaoService.buscarPorRecebivel(recebivelId);
