@@ -24,7 +24,7 @@ public class TaxaCambioController {
         this.taxaCambioService = servicoDeCambio;
     }
 
-    @GetMapping("/taxas")
+    @GetMapping("/taxas/listar-tudo")
     @Operation(summary = "Lista todas as taxas de cambio cadastradas")
     public ResponseEntity<List<TaxaCambioRespostaDTO>> listarTaxas() {
         var taxas = taxaCambioService.listarTaxas().stream().map(TaxaCambioRespostaDTO::apartirDe).toList();
