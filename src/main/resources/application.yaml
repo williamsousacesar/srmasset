@@ -1,3 +1,24 @@
 spring:
   application:
     name: srmcreditengine
+  datasource:
+    url: jdbc:mysql://db:3306/srmasset?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: srmasset
+    password: srmasset
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+srm:
+  precificacao:
+    taxa-base-mensal: 0.01
