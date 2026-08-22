@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @Component
 public class EstrategiaChequePreDatado implements EstrategiaDePrecificacao {
 
-    private static final BigDecimal SPREAD_MENSAL = new BigDecimal("0.015");
+    private static final BigDecimal SPREAD_MENSAL = new BigDecimal("0.025");
 
     @Override
     public TipoRecebivel obterTipoSuportado() {
