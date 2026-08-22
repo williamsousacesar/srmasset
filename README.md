@@ -21,6 +21,7 @@
 - [Regras de Negócio](#regras-de-negócio)
 - [Dados de Exemplo](#dados-de-exemplo)
 - [Testes](#testes)
+- [Estratégia de Branching](#estratégia-de-branching)
 
 ---
 
@@ -257,6 +258,22 @@ Na primeira execução, a `CargaDeDadosInicial` popula o banco automaticamente:
 ```
 
 Os testes unitários da camada de negócio ficam em `src/test/java/br/com/srm/srmcreditengine/business/`.
+
+---
+
+## Estratégia de Branching
+
+Este projeto adota o **GitHub Flow**, com o seguinte fluxo:
+
+- A branch `main` é sempre estável e representa o estado entregável do projeto.
+- Todo desenvolvimento é feito em branches de funcionalidade (ex: `feature/srm-asset`),
+  criadas a partir da `main`.
+- A integração ocorre exclusivamente via **Pull Request**, permitindo revisão e
+  rastreabilidade das mudanças antes do merge.
+
+O **GitHub Flow** equilibra simplicidade e governança: mantém a `main` sempre
+íntegra, exige revisão via PR e se adequa a um projeto de escopo enxuto, com um
+único desenvolvedor e entrega contínua.
 
 ---
 
