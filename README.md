@@ -21,6 +21,7 @@
 - [Regras de Negócio](#regras-de-negócio)
 - [Dados de Exemplo](#dados-de-exemplo)
 - [Testes](#testes)
+- [Design de Alta Escala](#design-de-alta-escala--1-milhão-de-transaçõesminuto)
 - [Estratégia de Branching](#estratégia-de-branching)
 
 ---
@@ -260,6 +261,80 @@ Na primeira execução, a `CargaDeDadosInicial` popula o banco automaticamente:
 Os testes unitários da camada de negócio ficam em `src/test/java/br/com/srm/srmcreditengine/business/`.
 
 ---
+
+# Arquitetura de Alta Escala — Como o sistema suporta 1 milhão de operações/minuto
+
+Plano de arquitetura para preparar o sistema para suportar **1 milhão de operações por minuto** (cerca de 16.700 acessos por segundo).
+
+---
+
+## Desenho do Fluxo
+
+```
+                    ┌────────────┐
+ Clientes ────────▶ │ Cloudflare │ (WAF / Proteção DDoS)
+                    └─────┬──────┘
+                          ▼
+                    ┌────────────┐
+                    │ API Gateway│ (Autenticação / Rate Limiting / Roteamento)
+                    └─────┬──────┘
+                          ▼
+             ┌────────────────────────┐
+             │   APIs do Sistema      │ (Aplicações Spring Boot / Node.js)
+             │   (Kubernetes Pods)    │ (Escalam dinamicamente)
+             └──┬──────────┬────────┬─┘
+                │          │        │
+      ┌─────────▼──┐   ┌───▼────┐  ┌▼──────────────────┐
+      │ Memória    │   │ Fila de│  │ AWS Aurora MySQL  │
+      │ Rápida     │   │ Mensag.│  │ (Banco Transacional)
+      │ (Redis)    │   │ (Kafka)│  │ ├─ Primário (Escrita)
+      └────────────┘   └───┬────┘  │ └─ Réplicas (Leitura)
+                           │       └───────────────────┘
+                           ▼
+                    ┌──────────────┐
+                    │ Workers em   │ (Consumidores de Fila que processam
+                    │ Segundo Plano│  as gravações em lote no banco)
+                    └──────────────┘
+```
+
+---
+
+## 1. Atendimento Rápido para Consultas (~80% dos acessos)
+
+Para responder mais de 13.000 consultas por segundo sem travar o banco de dados principal:
+
+| Informação | Como é tratada | Por que usar essa estratégia? |
+| :--- | :--- | :--- |
+| **Valores de Câmbio e Tabelas** | **Memória Rápida (Redis)** | São dados que mudam pouco. Guardar na memória evita consultas desnecessárias ao banco de dados. |
+| **Evitar Pagamentos Duplicados** | **Verificação Instantânea no Redis** | Bloqueia na hora se a mesma tentativa de pagamento for enviada duas vezes por engano. |
+| **Extratos e Consultas Gerais** | **Cópias de Leitura do Banco** | As consultas são direcionadas para cópias dedicadas do banco de dados, deixando o banco principal livre. |
+
+---
+
+## 2. Processamento Seguro de Pagamentos
+
+Para salvar cerca de 3.300 novos registros por segundo sem sobrecarregar o sistema:
+
+* **Resposta Imediata ao Cliente:** A aplicação recebe o pedido, faz validações básicas, coloca o pagamento em uma **Fila de Espera (Kafka)** e já responde ao cliente que o pedido foi aceito (`202 Accepted`).
+* **Gravação Organizada:** Um **Processador em Segundo Plano** pega os pedidos acumulados na fila e os grava em grandes grupos (*lotes*) no banco principal, aproveitando o máximo de velocidade do servidor.
+
+---
+
+## 3. Banco de Dados sem Complicação Excessiva
+
+Em vez de dividir o banco de dados em dezenas de servidores logo no início:
+
+* **Banco de Alta Performance Gerenciado (AWS Aurora):** Utilizamos um único servidor principal focado em salvar novos dados, acompanhado de **cópias automáticas** que se multiplicam apenas para responder às consultas.
+* **Simplicidade Técnica:** Evita ferramentas complexas e caras de gerenciamento de múltiplos bancos no primeiro dia.
+* **Crescimento Planejado:** Caso o sistema atinja limites físicos de hardware no futuro, aí sim o banco de dados será dividido em partes menores (*sharding*).
+
+---
+
+## 4. Segurança e Funcionamento Sem Interrupções
+
+* **Status "Em Processamento":** O cliente vê no aplicativo que o pagamento está `Em Processamento` enquanto a fila é consumida, podendo atualizar a tela ou receber uma notificação assim que for concluído.
+* **Garantia de Segurança Financeira:** Todas as gravações finais continuam seguindo regras rígidas de segurança para garantir que nenhum centavo seja perdido.
+* **Mecanismos de Defesa:** Se algum pagamento falhar durante o processamento, ele vai para uma fila especial de correção (*DLQ*), e a infraestrutura do sistema cria novos servidores automaticamente caso o tráfego atinja picos extremes.
 
 ## Estratégia de Branching
 
