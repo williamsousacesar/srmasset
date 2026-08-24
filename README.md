@@ -271,35 +271,35 @@ Plano de arquitetura para preparar o sistema para suportar **1 milhão de opera�
 ## Desenho do Fluxo
 
 ```
-                    ┌────────────┐
- Clientes ────────▶ │ Cloudflare │ (WAF / Proteção DDoS)
-                    └─────┬──────┘
-                          ▼
-                    ┌────────────┐
-                    │ API Gateway│ (Autenticação / Rate Limiting / Roteamento)
-                    └─────┬──────┘
-                          ▼
-             ┌────────────────────────┐
-             │   APIs do Sistema      │ (Aplicações Spring Boot / Node.js)
-             │   (Kubernetes Pods)    │ (Escalam dinamicamente)
-             └──┬──────────┬────────┬─┘
-                │          │        │
-      ┌─────────▼──┐   ┌───▼────┐  ┌▼──────────────────┐
-      │ Memória    │   │ Fila de│  │ AWS Aurora MySQL  │
-      │ Rápida     │   │ Mensag.│  │ (Banco Transacional)
-      │ (Redis)    │   │ (Kafka)│  │ ├─ Primário (Escrita)
-      └────────────┘   └───┬────┘  │ └─ Réplicas (Leitura)
-                           │       └───────────────────┘
-                           ▼
-                    ┌──────────────┐
-                    │ Workers em   │ (Consumidores de Fila que processam
-                    │ Segundo Plano│  as gravações em lote no banco)
-                    └──────────────┘
+Clientes ──────────────────────────┐
+                                    ▼
+                          ┌────────────────────┐
+                          │    API Gateway     │ (Autenticação / Rate Limiting /
+                          └─────────┬──────────┘  Roteamento para os Microsserviços)
+                                    │
+                                    ▼
+                      ┌────────────────────────┐
+                      │   APIs do Sistema      │ (Aplicações Spring Boot / Node.js)
+                      │   (Kubernetes Pods)    │ (Escalam dinamicamente)
+                      └──┬──────────┬────────┬─┘
+                         │          │        │
+               ┌─────────▼──┐   ┌───▼────┐  ┌▼──────────────────┐
+               │ Memória    │   │ Fila de│  │ AWS Aurora MySQL  │
+               │ Rápida     │   │ Mensag.│  │ (Banco Transacional)
+               │ (Redis)    │   │ (Kafka)│  │ ├─ Primário (Escrita)
+               └────────────┘   └───┬────┘  │ └─ Réplicas (Leitura)
+                                    │       └───────────────────┘
+                                    ▼
+                             ┌──────────────┐
+                             │ Workers em   │ (Consumidores de Fila que processam
+                             │ Segundo Plano│  as gravações em lote no banco)
+                             └──────────────┘
+
 ```
 
 ---
 
-## 1. Atendimento Rápido para Consultas (~80% dos acessos)
+## 1. Atendimento Rápido para as Consultas
 
 Para responder mais de 13.000 consultas por segundo sem travar o banco de dados principal:
 

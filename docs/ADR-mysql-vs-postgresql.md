@@ -3,12 +3,10 @@
 - **Status:** Aceito
 - **Data:** 2026-08-22
 - **Decisores:** Equipe de engenharia
-- **Relacionado:** [ADR-001](ADR-001-sql-vs-nosql.md) (decisão por banco relacional)
 
 ## Contexto
 
-Definido o modelo relacional (ADR-001), restava escolher o SGBD. Os dois
-candidatos maduros e open source eram **MySQL 8** e **PostgreSQL 16**. As
+Os dois candidatos maduros para trabalhar com modelo relacional e open source são o **MySQL 8** e **PostgreSQL 16**. As
 necessidades do Credit Engine são: transações ACID, `DECIMAL` para valores
 monetários, integridade referencial, boa integração com Spring Data
 JPA/Hibernate e operação simples via Docker.
@@ -17,8 +15,8 @@ JPA/Hibernate e operação simples via Docker.
 
 | Critério | MySQL 8 | PostgreSQL 16 |
 |---|---|---|
-| ACID / transações | ✅ (InnoDB) | ✅ |
-| Tipos monetários (`DECIMAL`) | ✅ | ✅ (`NUMERIC`) |
+| ACID / transações | ✅  | ✅ |
+| Tipos monetários (`DECIMAL`) | ✅ | ✅ |
 | Suporte Hibernate/JPA | Excelente | Excelente |
 | Leituras simples por PK (workload dominante do sistema) | Muito rápido; índice clusterizado por PK favorece lookups | Rápido |
 | Recursos avançados (JSONB, CTEs ricas, tipos custom, particionamento declarativo) | Parcial | ✅ Superior |
@@ -38,7 +36,7 @@ Motivos determinantes:
    (recebível por id, taxa por par de moedas) e escritas transacionais
    pontuais — perfil em que o índice clusterizado do InnoDB brilha; não
    usamos os diferenciais do Postgres (JSONB, tipos custom, full-text);
-2. **Caminho de escala já traçado**: o plano de alta escala (README) prevê
+2. **Caminho de escala já traçado**: o plano de alta escala (README) poe prevê
    sharding via **Vitess**, ecossistema consolidado sobre MySQL (YouTube,
    Slack, GitHub);
 3. **Simplicidade operacional**: replicação por GTID é simples de operar e
